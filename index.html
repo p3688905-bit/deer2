@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暗黑邏輯：朝堂上的指鹿為馬</title>
+  
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* 秦朝崇尚黑色與紅色，以此為基調 */
+    body {
+      background-color: #121212;
+      background-image: url('https://www.transparenttextures.com/patterns/black-scales.png');
+      font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", serif;
+      color: #e0e0e0;
+    }
+
+    /* 趙高的壓迫感震動動畫 */
+    .terror-shake {
+      animation: terrorShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes terrorShake {
+      10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-1deg); }
+      20%, 80% { transform: translate3d(4px, 0, 0) rotate(1deg); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotate(-2deg); }
+      40%, 60% { transform: translate3d(6px, 0, 0) rotate(2deg); }
+    }
+
+    /* 血液飛濺特效 (答錯時) */
+    .blood-flash {
+      animation: bloodFlash 0.5s ease-out forwards;
+    }
+    @keyframes bloodFlash {
+      0% { box-shadow: inset 0 0 0 0 rgba(185, 28, 28, 0); }
+      50% { box-shadow: inset 0 0 100px 20px rgba(185, 28, 28, 0.8); }
+      100% { box-shadow: inset 0 0 0 0 rgba(185, 28, 28, 0); }
+    }
+
+    .fade-in { animation: fadeIn 0.5s ease-in forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 古風卷軸樣式面板 */
+    .imperial-panel {
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      border: 1px solid #4a3b2c;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 0 1px #3a2c20;
+    }
+  </style>
+</head>
+<body id="body-container" class="min-h-screen flex flex-col items-center py-8 px-4 sm:px-8 transition-colors duration-300">
+
+  <div id="game-container" class="max-w-3xl w-full flex flex-col h-full fade-in">
+    
+    <!-- 標題與氣氛營造 -->
+    <div class="flex justify-between items-end border-b-2 border-red-900 pb-4 mb-6">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold flex items-center gap-3 text-red-700 tracking-widest drop-shadow-md">
+          <i data-lucide="gavel" class="w-8 h-8 sm:w-10 sm:h-10 text-red-800"></i>
+          指鹿為馬：權力與邏輯
+        </h1>
+        <p class="text-sm sm:text-base text-gray-400 mt-2">大秦朝堂之上，殺機四伏。請在腦海中拆解丞相的邏輯謬誤以求自保。</p>
+      </div>
+      <div class="text-right">
+        <span id="stage-counter" class="text-xs font-bold text-red-200 bg-red-900/50 border border-red-800 px-3 py-1 rounded shadow">
+          第 1 幕
+        </span>
+      </div>
+    </div>
+
+    <!-- 劇情與對話區塊 -->
+    <div class="imperial-panel rounded-lg p-6 sm:p-8 mb-8 relative overflow-hidden">
+      <!-- 背景裝飾印章 -->
+      <div class="absolute -right-10 -top-10 text-red-900/20 font-bold text-9xl transform rotate-12 pointer-events-none">鹿</div>
+      
+      <div class="relative z-10 flex flex-col gap-6">
+        <div class="flex items-start gap-4">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-800 rounded-md border-2 border-red-800 flex items-center justify-center flex-shrink-0 shadow-lg">
+             <img src="https://api.dicebear.com/7.x/bottts/svg?seed=ZhaoGao&backgroundColor=2a2a2a" alt="趙高" class="w-14 h-14 sm:w-16 sm:h-16" />
+          </div>
+          <div class="flex-1">
+            <h2 class="text-xl font-bold text-red-500 mb-2 border-b border-gray-700 pb-1">丞相 趙高</h2>
+            <p id="scenario-context" class="text-gray-300 text-sm mb-3 leading-relaxed italic">
+              (情境描述)
+            </p>
+            <div class="bg-black/40 p-4 rounded border-l-4 border-red-700">
+              <p id="zhao-dialogue" class="text-lg font-medium text-gray-100 leading-relaxed tracking-wide">
+                「對話內容」
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 玩家推理區塊 -->
+    <div class="flex flex-col mb-8">
+      <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-gray-300">
+        <i data-lucide="brain" class="w-5 h-5 text-gray-400"></i>
+        邏輯學官的內心獨白：趙高在此處使用了哪種邏輯謬誤？
+      </h3>
+      
+      <div id="options-container" class="flex flex-col gap-3">
+        <!-- 選項由 JS 生成 -->
+      </div>
+    </div>
+
+    <!-- 結果回饋區 -->
+    <div id="feedback-area" class="hidden flex-col fade-in mb-8">
+      <div id="feedback-card" class="w-full rounded-lg p-6 border-l-4 shadow-2xl relative overflow-hidden">
+        <div class="relative z-10">
+          <div class="flex items-center gap-3 mb-3">
+            <i id="feedback-icon" class="w-6 h-6"></i>
+            <h4 id="feedback-title" class="font-bold text-xl tracking-wide">標題</h4>
+          </div>
+          <p id="feedback-message" class="text-sm font-medium mb-4 text-gray-300">情境回饋</p>
+          
+          <div id="feedback-logic" class="bg-black/50 p-4 rounded text-sm text-gray-200 border border-gray-700 hidden">
+            <p class="font-bold text-amber-500 mb-1 flex items-center gap-1">
+              <i data-lucide="book-open" class="w-4 h-4"></i> 邏輯拆解：
+            </p>
+            <span id="feedback-logic-text" class="leading-relaxed">解析內容</span>
+          </div>
+        </div>
+      </div>
+      
+      <button id="next-btn" onclick="nextStage()" class="mt-6 bg-red-900 hover:bg-red-800 text-gray-100 px-8 py-3 rounded font-bold text-lg border border-red-700 shadow-lg transition-all flex items-center justify-center gap-2 mx-auto">
+        <span id="next-btn-text">下一幕</span>
+        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 結算畫面 -->
+  <div id="end-container" class="max-w-2xl w-full imperial-panel rounded-lg shadow-2xl p-8 sm:p-12 hidden my-auto flex-col items-center fade-in border-red-900 text-center relative overflow-hidden">
+    <!-- 背景裝飾 -->
+    <div class="absolute inset-0 opacity-10 flex items-center justify-center pointer-events-none">
+      <i data-lucide="scale" class="w-64 h-64 text-amber-500"></i>
+    </div>
+
+    <div class="relative z-10 flex flex-col items-center">
+      <i data-lucide="eye" class="w-16 h-16 text-amber-500 mb-6"></i>
+      <h1 class="text-3xl sm:text-4xl font-extrabold mb-4 text-amber-500 tracking-widest">洞若觀火，邏輯存真</h1>
+      
+      <div class="text-left w-full space-y-4 text-gray-300 text-base leading-relaxed bg-black/60 p-6 rounded border border-gray-700 mb-8">
+        <p>
+          大殿之上，群臣要麼因恐懼而附和，要麼因剛直而喪命。只有你，在腦海中冷靜地解構了這場權力遊戲的底層代碼。
+        </p>
+        <p>
+          「指鹿為馬」從來都不是認知問題，而是一場利用<strong class="text-red-400">邏輯謬誤（如肯定後件、人身攻擊、訴諸武力）</strong>進行的服從性測試。趙高閹割的不是真理，而是人們陳述真理的勇氣。
+        </p>
+        <p class="text-amber-500 font-bold mt-4 pt-4 border-t border-gray-700 text-center">
+          在權力的威壓下，邏輯或許無法拯救肉體，但能確保你的靈魂不被愚弄。
+        </p>
+      </div>
+
+      <button onclick="restartGame()" class="flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 text-amber-500 border border-amber-700 px-6 py-3 rounded font-bold transition-colors shadow-lg">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span>再次上朝，觀察歷史</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 遊戲劇本：邏輯謬誤分析
+    const STAGES = [
+      {
+        id: 1,
+        title: "第一幕：偷換概念的序章",
+        context: "趙高命人牽來一頭鹿，對秦二世胡亥說：『陛下，臣偶然得了一匹千里馬，特來獻給您。』群臣嘩然。趙高轉身面對群臣開始論證。",
+        dialogue: "「這隻動物有四條腿，有長長的尾巴，能在廣闊的平原上奔跑。具備這些特徵的，難道不是馬嗎？所以這就是一匹馬！」",
+        options: [
+          { text: "【稻草人謬誤】(Straw Man Fallacy)", isCorrect: false, msg: "趙高並沒有曲解別人的觀點來攻擊，他是自己提出了有問題的論證。" },
+          { text: "【肯定後件謬誤】(Affirming the Consequent)", isCorrect: true, msg: "精準命中！趙高利用了條件句的邏輯漏洞。" },
+          { text: "【滑坡謬誤】(Slippery Slope)", isCorrect: false, msg: "趙高並沒有推論這會導致一連串糟糕的後果，此謬誤不成立。" }
+        ],
+        logicExplanation: "這是一個標準的【肯定後件】形式邏輯謬誤。其邏輯結構為：「如果是馬(A)，就會有四條腿和尾巴(B)」。現在趙高指出「這動物有四條腿和尾巴(B)」，於是推論「所以牠是馬(A)」。這在邏輯上是無效的，因為鹿、狗、牛也具備條件(B)。趙高故意忽略了馬的『充分條件』與『必要條件』。"
+      },
+      {
+        id: 2,
+        title: "第二幕：扼殺反對的聲音",
+        context: "一位耿直的大臣站了出來，指著那隻動物頭上的角說：『丞相欺君！這動物頭上長著鹿角，身上有梅花斑，分明是鹿！』趙高冷笑了一聲。",
+        dialogue: "「哼，李大人，你上個月才因為貪污賑災糧款被御史彈劾，你這種品行卑劣、對朝廷懷恨在心的人，嘴裡說出來的話怎麼能信？你說它是鹿，這根本是無稽之談！」",
+        options: [
+          { text: "【訴諸權威】(Appeal to Authority)", isCorrect: false, msg: "趙高此時並未搬出某個權威人物來支持自己。" },
+          { text: "【人身攻擊謬誤】(Ad Hominem)", isCorrect: true, msg: "完全正確！趙高轉移了焦點，攻擊說話者本身。" },
+          { text: "【假兩難推論】(False Dilemma)", isCorrect: false, msg: "趙高沒有提供只有兩個極端的選項，此選項錯誤。" }
+        ],
+        logicExplanation: "這是非常惡毒的【人身攻擊謬誤】(Ad Hominem)。李大人的論點是基於客觀的物理特徵（鹿角、梅花斑），趙高無法反駁這些客觀事實，於是選擇攻擊李大人的「品格」與「動機」。在邏輯學上，一個人的品格好壞，與他陳述的客觀事實（這是不是鹿）是否為真，毫無邏輯關聯。"
+      },
+      {
+        id: 3,
+        title: "第三幕：赤裸裸的威脅",
+        context: "李大人被衛兵強行拖下殿外。大殿內死一般寂靜。趙高手按劍柄，目光如毒蛇般掃過剩下的群臣。",
+        dialogue: "「欺君罔上，按大秦律例當誅九族。我再問諸位大人一次，這到底是鹿，還是馬？若是鹿，便是說本相欺君；若是馬，我們便同朝為臣，榮華富貴。說吧！」",
+        options: [
+          { text: "【訴諸武力/威力謬誤】(Argumentum ad Baculum)", isCorrect: true, msg: "你看透了權力的本質。邏輯在此刻被利刃取代。" },
+          { text: "【循環論證】(Circular Reasoning)", isCorrect: false, msg: "趙高並沒有把結論當成前提來證明，他直接用了威脅。" },
+          { text: "【訴諸無知】(Appeal to Ignorance)", isCorrect: false, msg: "趙高不是因為無法證明它是鹿就說它是馬，他是用死亡來逼迫。" }
+        ],
+        logicExplanation: "這就是【訴諸武力謬誤】(Appeal to Force)。當辯論者缺乏理性的論據時，便試圖以威脅、恐嚇（誅九族）來逼迫對方接受自己的結論。在這種情況下，群臣回答「是馬」，並非因為他們在邏輯上被說服了，而是為了「求生」。這已脫離了真理的探討，變成了暴力的屈服。"
+      },
+      {
+        id: 4,
+        title: "第四幕：荒謬的共識",
+        context: "在趙高的威壓下，絕大多數的大臣都顫抖著跪下，齊聲高呼：『丞相所言極是，此乃絕世好馬！』秦二世胡亥揉了揉眼睛，顯得非常困惑。",
+        dialogue: "胡亥喃喃自語：「難道真的是我眼花看錯了？既然滿朝文武百官都說這是馬，那這肯定就是馬了。來人，把這『馬』牽下去餵草料吧。」",
+        options: [
+          { text: "【訴諸群眾謬誤】(Appeal to Popularity/Bandwagon)", isCorrect: true, msg: "悲哀的結局。皇帝淪為了從眾心理的奴隸。" },
+          { text: "【沉沒成本謬誤】(Sunk Cost Fallacy)", isCorrect: false, msg: "胡亥並未因為之前投入了什麼成本而繼續堅持，他是因為人數而動搖。" },
+          { text: "【以偏概全】(Hasty Generalization)", isCorrect: false, msg: "胡亥並沒有從少數樣本推論出整體，他是盲從了多數人。" }
+        ],
+        logicExplanation: "胡亥犯下了【訴諸群眾謬誤】(Bandwagon Fallacy / Appeal to Popularity)。這個謬誤認為「如果多數人相信某事是真的，那麼它就是真的」。胡亥放棄了自己對客觀現實的認知（眼睛看到的鹿），將判斷真理的標準交給了「多數人的共識」。而他不知道的是，這個共識是透過上一幕的「訴諸武力」偽造出來的。真理的消亡，由此完成。"
+      }
+    ];
+
+    let currentStageIndex = 0;
+    let isStageComplete = false;
+
+    const gameContainer = document.getElementById('game-container');
+    const endContainer = document.getElementById('end-container');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackArea = document.getElementById('feedback-area');
+    const bodyContainer = document.getElementById('body-container');
+
+    function renderStage() {
+      const stage = STAGES[currentStageIndex];
+      isStageComplete = false;
+      feedbackArea.classList.add('hidden');
+      bodyContainer.classList.remove('blood-flash');
+      
+      // 移除震動
+      document.querySelector('.imperial-panel').classList.remove('terror-shake');
+
+      document.getElementById('stage-counter').textContent = `第 ${currentStageIndex + 1} 幕：共 4 幕`;
+      document.getElementById('scenario-context').textContent = stage.context;
+      document.getElementById('zhao-dialogue').textContent = stage.dialogue;
+
+      optionsContainer.innerHTML = '';
+      stage.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = "text-left p-4 rounded bg-gray-800 border border-gray-600 hover:border-gray-400 hover:bg-gray-700 transition-all text-gray-200 font-medium text-base option-btn";
+        btn.innerHTML = `<span class="mr-2">■</span> ${option.text}`;
+        btn.onclick = () => selectOption(index, option.isCorrect);
+        optionsContainer.appendChild(btn);
+      });
+
+      lucide.createIcons();
+    }
+
+    function selectOption(selectedIndex, isCorrect) {
+      if (isStageComplete) return;
+      
+      const stage = STAGES[currentStageIndex];
+      const buttons = document.querySelectorAll('.option-btn');
+      
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        btn.classList.remove('hover:border-gray-400', 'hover:bg-gray-700');
+        
+        if (idx === selectedIndex) {
+          if (isCorrect) {
+            btn.classList.add('bg-gray-900', 'border-amber-500', 'text-amber-400');
+          } else {
+            btn.classList.add('bg-red-950', 'border-red-600', 'text-red-300');
+          }
+        } else {
+          btn.classList.add('opacity-30');
+        }
+      });
+
+      feedbackArea.classList.remove('hidden');
+      const feedbackCard = document.getElementById('feedback-card');
+      const icon = document.getElementById('feedback-icon');
+      const title = document.getElementById('feedback-title');
+      const logicBox = document.getElementById('feedback-logic');
+      
+      document.getElementById('feedback-message').textContent = stage.options[selectedIndex].msg;
+      document.getElementById('feedback-logic-text').textContent = stage.logicExplanation;
+
+      if (isCorrect) {
+        isStageComplete = true;
+        feedbackCard.className = "w-full rounded-lg p-6 border-l-4 shadow-2xl relative overflow-hidden bg-gray-800/80 border-amber-500 text-gray-200";
+        icon.setAttribute('data-lucide', 'check-circle');
+        icon.className = "w-6 h-6 text-amber-500";
+        title.textContent = "思辨正確，洞悉謬誤";
+        title.className = "font-bold text-xl tracking-wide text-amber-500";
+        logicBox.classList.remove('hidden');
+
+        document.getElementById('next-btn').classList.remove('hidden');
+        document.getElementById('next-btn-text').textContent = currentStageIndex < STAGES.length - 1 ? '進入下一幕' : '查看最終歷史評價';
+
+      } else {
+        // 答錯：遭到趙高壓迫
+        feedbackCard.className = "w-full rounded-lg p-6 border-l-4 shadow-2xl relative overflow-hidden bg-red-900/40 border-red-600 text-gray-200";
+        icon.setAttribute('data-lucide', 'skull');
+        icon.className = "w-6 h-6 text-red-500";
+        title.textContent = "思緒混亂，險遭殺機！";
+        title.className = "font-bold text-xl tracking-wide text-red-500";
+        logicBox.classList.add('hidden'); 
+        
+        // 特效：畫面震動與閃紅
+        document.querySelector('.imperial-panel').classList.add('terror-shake');
+        
+        // 觸發重新繪製動畫
+        bodyContainer.classList.remove('blood-flash');
+        void bodyContainer.offsetWidth; 
+        bodyContainer.classList.add('blood-flash');
+
+        document.getElementById('next-btn').classList.remove('hidden');
+        document.getElementById('next-btn-text').textContent = '冷靜下來，重新思考';
+        
+        document.getElementById('next-btn').onclick = () => {
+          renderStage(); 
+          document.getElementById('next-btn').onclick = nextStage; 
+        };
+      }
+
+      lucide.createIcons();
+    }
+
+    function nextStage() {
+      if (currentStageIndex < STAGES.length - 1) {
+        currentStageIndex++;
+        renderStage();
+      } else {
+        gameContainer.classList.add('hidden');
+        endContainer.classList.remove('hidden');
+        endContainer.classList.add('flex');
+        lucide.createIcons();
+      }
+    }
+
+    function restartGame() {
+      currentStageIndex = 0;
+      endContainer.classList.add('hidden');
+      endContainer.classList.remove('flex');
+      gameContainer.classList.remove('hidden');
+      renderStage();
+    }
+
+    // 初始化遊戲
+    document.addEventListener('DOMContentLoaded', () => {
+      renderStage();
+    });
+  </script>
+</body>
+</html>
